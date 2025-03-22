@@ -19,6 +19,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/login").permitAll()
                         .requestMatchers("/api/register").permitAll()
+                        .requestMatchers("/api/properties/search/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf.disable())

@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, {useContext, useState} from 'react';
 import axios from 'axios';
+import {useNavigate} from "react-router-dom";
+import {AuthContext} from "../components/AuthContext";
 
 function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
+    const {login} = useContext(AuthContext)
+    const navigate = useNavigate()
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -13,7 +17,12 @@ function Login() {
                 username,
                 password
             });
-            setMessage(response.data);
+            setMessage(response.data.message);
+            console.log(response.data)
+            if(response.data.success) {
+                login(response.data.user)
+                navigate('/');
+            }
         } catch (error) {
             setMessage('Login failed!');
         }

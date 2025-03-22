@@ -13,22 +13,20 @@ public class UserService {
     private UserRepository userRepository;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-    public String login(String username, String password) {
+    public UserEntity login(String username, String password) {
         UserEntity user = userRepository.findByUsername(username).orElse(null);
-        if(user == null) {
-            return "Username is invalid!";
-        } else if (!encoder.matches(password, user.getPassword())) {
-            return "Password is incorrect!";
+        if(user == null || !encoder.matches(password, user.getPassword())) {
+            return null;
         }
-        return "Welcome " + username + " to Real Estate Hub";
+        return user;
     }
 
-    public String register(String username, String password, String email) {
+    public UserEntity register(String username, String password, String email) {
         if (userRepository.findByUsername(username).isPresent()) {
-            return "Username already exists!";
+            return null;
         }
         if (userRepository.findByEmail(email).isPresent()) {
-            return "Email already exists!";
+            return null;
         }
 
         //Create new user to save to database
@@ -40,6 +38,6 @@ public class UserService {
 
 
 
-        return "Registration successful for " + username + "!";
+        return newUser;
     }
 }
