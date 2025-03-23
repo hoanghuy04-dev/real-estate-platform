@@ -4,10 +4,9 @@ import com.example.realestate.model.PropertyEntity;
 import com.example.realestate.repository.PropertyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PropertyService {
@@ -15,14 +14,19 @@ public class PropertyService {
     @Autowired
     private PropertyRepository propertyRepository;
 
-    public List<PropertyEntity> searchLocation(String location) {
-        if(location == null)
+    public List<PropertyEntity> searchProperties(String location) {
+        if (location == null)
             return propertyRepository.findAll();
 
-        if(location.trim().isEmpty())
+        if (location.trim().isEmpty())
             return propertyRepository.findAll();
 
         return propertyRepository.findByLocationContainingIgnoreCase(location);
+    }
+
+    public PropertyEntity getPropertyById(Long propertyId) {
+        Optional<PropertyEntity> property = propertyRepository.findById(propertyId);
+        return property.orElse(null);
     }
 
     // Thêm dữ liệu mẫu (chạy lần đầu)
@@ -34,6 +38,7 @@ public class PropertyService {
             p1.setPrice("5 tỷ VND");
             p1.setSize("120m²");
             p1.setImageURL("https://picsum.photos/300/200?random=1");
+            p1.setDescription("Nhà 3 tầng mới xây, thiết kế hiện đại, đầy đủ tiện nghi, gần trung tâm Hà Nội. Phù hợp cho gia đình 4-5 người.");
 
             PropertyEntity p2 = new PropertyEntity();
             p2.setName("Căn hộ cao cấp");
@@ -41,6 +46,7 @@ public class PropertyService {
             p2.setPrice("2.5 tỷ VND");
             p2.setSize("80m²");
             p2.setImageURL("https://picsum.photos/300/200?random=2");
+            p2.setDescription("Căn hộ cao cấp tại trung tâm TP.HCM, view sông Sài Gòn, nội thất sang trọng, an ninh 24/7.");
 
             PropertyEntity p3 = new PropertyEntity();
             p3.setName("Biệt thự");
@@ -48,9 +54,9 @@ public class PropertyService {
             p3.setPrice("10 tỷ VND");
             p3.setSize("200m²");
             p3.setImageURL("https://picsum.photos/300/200?random=3");
+            p3.setDescription("Biệt thự ven biển Đà Nẵng, không gian thoáng đãng, có hồ bơi riêng, lý tưởng để nghỉ dưỡng.");
 
             propertyRepository.saveAll(List.of(p1, p2, p3));
         }
     }
-
 }

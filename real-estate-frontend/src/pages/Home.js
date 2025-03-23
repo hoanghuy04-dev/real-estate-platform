@@ -28,8 +28,6 @@ export default function Home() {
         // };
     }, []);
 
-    console.log("re-render")
-
     const fetchProperties = async (searchLocation = '') => {
         try {
             const response = await axios.get('http://localhost:8081/api/properties/search', {
@@ -69,9 +67,9 @@ export default function Home() {
                     <h1 className="text-2xl font-bold text-blue-600">Real Estate</h1>
                     <div className="flex items-center space-x-4">
                         <a href="/" className="text-gray-600 hover:text-blue-500 ">Trang chủ</a>
-                        <a href="/blog" className="text-gray-600 hover:text-blue-500">Bài viết</a>
-                        <a href="/contact" className="text-gray-600 hover:text-blue-500">Liên hệ</a>
-                        <a href="/about" className="text-gray-600 hover:text-blue-500">Giới thiệu</a>
+                        <a href="/api/properties" className="text-gray-600 hover:text-blue-500">Bài viết</a>
+                        <a href="/api/contact" className="text-gray-600 hover:text-blue-500">Liên hệ</a>
+                        <a href="/api/about" className="text-gray-600 hover:text-blue-500">Giới thiệu</a>
                         {user ? (
                             <div className="relative" ref={dropdownRef}>
                                 <button
@@ -183,7 +181,7 @@ export default function Home() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {properties.map((property, index) => (
-                            <div key={index} className="bg-white shadow-lg rounded-lg overflow-hidden">
+                            <div key={property.propertyID} className="bg-white shadow-lg rounded-lg overflow-hidden">
                                 <img
                                     src={`https://picsum.photos/300/200?random=${index + 1}`}
                                     alt={property.name}
@@ -193,10 +191,12 @@ export default function Home() {
                                     <h4 className="font-bold text-xl text-gray-800">{property.name}</h4>
                                     <p className="text-gray-600">{property.location + " - " + property.price}</p>
                                     <p className="text-gray-500 text-sm mt-2">{property.size}</p>
-                                    <button
-                                        className="w-full bg-blue-500 text-white p-2 rounded-lg mt-4 hover:bg-blue-600">
+                                    <a
+                                        href={`/properties/${property.propertyID}`}
+                                        className="w-full bg-blue-500 text-white p-2 rounded-lg mt-4 block text-center hover:bg-blue-600"
+                                    >
                                         Xem chi tiết
-                                    </button>
+                                    </a>
                                 </div>
                             </div>
                         ))}

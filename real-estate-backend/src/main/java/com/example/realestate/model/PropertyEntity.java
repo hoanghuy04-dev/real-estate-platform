@@ -24,4 +24,6 @@ public class PropertyEntity {
     private String size;
     @Column(name = "image_url", columnDefinition = "nvarchar(255)")
     private String imageURL;
+    @Column(name = "description", columnDefinition = "nvarchar(1000)")
+    private String description;
 }

@@ -1,21 +1,26 @@
-import './App.css';
-import Login from "./pages/Login";
-import {BrowserRouter as Router, Route, Routes} from 'react-router-dom'
-import Register from "./pages/Register";
-import Home from "./pages/Home";
-import {AuthProvider} from "./components/AuthContext";
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { AuthProvider } from './components/AuthContext';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Blog from './pages/Blog';
+import PropertyDetail from './pages/PropertyDetail';
 
 function App() {
     return (
         <AuthProvider>
             <Router>
                 <Routes>
-                    <Route path={"/"} element={<Home/>}/>
-                    <Route path={"/login"} element={<Login/>}/>
-                    <Route path={"/register"} element={<Register/>}/>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/blog" element={<Blog />} />
+                    <Route path="/properties/:id" element={<PropertyDetail />} />
                 </Routes>
             </Router>
-        </AuthProvider>)
+        </AuthProvider>
+    );
 }
 
 export default App;
