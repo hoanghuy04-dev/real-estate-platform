@@ -1,197 +1,194 @@
-import axios from 'axios'
-import React, { useContext, useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { AuthContext } from '../components/AuthContext'
-import {UserIcon} from '@heroicons/react/24/solid';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import PropertyPost from '../components/PropertyPost';
 
 export default function Blog() {
-    const [properties, setProperties] = useState([])
-    const [searchParams] = useSearchParams()
-    const selectedId = searchParams.get('id')
-
-    const [searchLocation, setSearchLocation] = useState('');
-    const { user, logout } = useContext(AuthContext);
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const dropdownRef = useRef(null); // Ref để theo dõi dropdown
-
+    const [properties, setProperties] = useState([]);
+    const [filteredProperties, setFilteredProperties] = useState([]);
+    const [locationFilter, setLocationFilter] = useState('');
+    const [minPrice, setMinPrice] = useState('');
+    const [maxPrice, setMaxPrice] = useState('');
+    const [minSize, setMinSize] = useState('');
+    const [maxSize, setMaxSize] = useState('');
+    const [typeFilter, setTypeFilter] = useState('');
 
     useEffect(() => {
         const fetchProperties = async () => {
             try {
                 const response = await axios.get('http://localhost:8081/api/properties');
-
                 if (Array.isArray(response.data)) {
-                    // Nếu có selectedId, đưa bất động sản đó lên đầu
-                    if (selectedId) {
-                        const selectedProperty = response.data.find(
-                            (property) => property.propertyID === parseInt(selectedId)
-                        )
-
-                        const unSelectedProperties = response.data.filter(
-                            (property) => property.propertyID !== parseInt(selectedId)
-                        )
-
-                        if (selectedProperty) {
-                            setProperties([selectedProperty, ...unSelectedProperties])
-                        } else {
-                            setProperties(response.data)
-                        }
-                    } else {
-                        setProperties(response.data)
-                    }
+                    setProperties(response.data);
+                    setFilteredProperties(response.data);
                 } else {
                     console.error('Invalid data format:', response.data);
                     setProperties([]);
+                    setFilteredProperties([]);
                 }
             } catch (error) {
                 console.error('Error fetching properties:', error);
                 setProperties([]);
-            }
-        }
-
-        // Thêm sự kiện click để đóng dropdown khi click ra ngoài
-        const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setIsDropdownOpen(false);
+                setFilteredProperties([]);
             }
         };
 
-        document.addEventListener('mousedown', handleClickOutside);
-        // return () => {
-        //     document.removeEventListener('mousedown', handleClickOutside);
-        // };
+        fetchProperties();
+    }, []);
 
-    }, [selectedId]);
-
-    const toggleDropdown = () => {
-        setIsDropdownOpen(!isDropdownOpen);
+    // Hàm chuyển đổi giá từ chuỗi (VD: "5 tỷ VND") thành số (đơn vị: tỷ)
+    const parsePrice = (priceStr) => {
+        const match = priceStr.match(/(\d+(\.\d+)?)/);
+        return match ? parseFloat(match[0]) : 0;
     };
 
-    const handleLogout = () => {
-        logout();
-        setIsDropdownOpen(false);
+    // Hàm chuyển đổi diện tích từ chuỗi (VD: "120m²") thành số
+    const parseSize = (sizeStr) => {
+        const match = sizeStr.match(/(\d+)/);
+        return match ? parseInt(match[0]) : 0;
     };
+
+    // Lọc properties khi các tiêu chí thay đổi
+    useEffect(() => {
+        let filtered = properties;
+
+        // Lọc theo vị trí
+        if (locationFilter.trim() !== '') {
+            filtered = filtered.filter((property) =>
+                property.location.toLowerCase().includes(locationFilter.toLowerCase())
+            );
+        }
+
+        // Lọc theo giá
+        if (minPrice !== '' || maxPrice !== '') {
+            filtered = filtered.filter((property) => {
+                const price = parsePrice(property.price);
+                const min = minPrice !== '' ? parseFloat(minPrice) : 0;
+                const max = maxPrice !== '' ? parseFloat(maxPrice) : Infinity;
+                return price >= min && price <= max;
+            });
+        }
+
+        // Lọc theo diện tích
+        if (minSize !== '' || maxSize !== '') {
+            filtered = filtered.filter((property) => {
+                const size = parseSize(property.size);
+                const min = minSize !== '' ? parseInt(minSize) : 0;
+                const max = maxSize !== '' ? parseInt(maxSize) : Infinity;
+                return size >= min && size <= max;
+            });
+        }
+
+        // Lọc theo loại bất động sản
+        if (typeFilter !== '') {
+            console.log(typeFilter)
+            filtered = filtered.filter((property) => property.type === typeFilter);
+        }
+
+        setFilteredProperties(filtered);
+    }, [locationFilter, minPrice, maxPrice, minSize, maxSize, typeFilter, properties]);
 
     return (
         <div className="min-h-screen bg-gray-100">
-            {/* Header */}
-            <header className="bg-white shadow">
-                <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-                    <h1 className="text-2xl font-bold text-blue-600">Real Estate</h1>
-                    <div className="flex items-center space-x-4">
-                        <a href="/" className="text-gray-600 hover:text-blue-500 ">Trang chủ</a>
-                        <a href="/blog" className="text-gray-600 hover:text-blue-500">Bài viết</a>
-                        <a href="/contact" className="text-gray-600 hover:text-blue-500">Liên hệ</a>
-                        <a href="/about" className="text-gray-600 hover:text-blue-500">Giới thiệu</a>
-                        {user ? (
-                            <div className="relative" ref={dropdownRef}>
-                                <button
-                                    onClick={toggleDropdown}
-                                    className="focus:outline-none"
-                                >
-                                    <UserIcon className="h-6 w-6 text-gray-600 hover:text-blue-500" />
-                                </button>
-                                {isDropdownOpen && (
-                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-20">
-                                        <a
-                                            href="/profile"
-                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-500"
-                                        // onClick={() => setIsDropdownOpen(false)}
-                                        >
-                                            Thông tin tài khoản
-                                        </a>
-                                        <a
-                                            href="/settings"
-                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-500"
-                                        // onClick={() => setIsDropdownOpen(false)}
-                                        >
-                                            Cài đặt
-                                        </a>
-                                        <button
-                                            onClick={handleLogout}
-                                            className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-500"
-                                        >
-                                            Đăng xuất
-                                        </button>
-                                    </div>
-                                )}
+            <Header />
+
+            <section className="py-6">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex">
+                    {/* Thanh lọc bên trái */}
+                    <div className="w-1/4 pr-6">
+                        <h3 className="text-xl font-bold mb-4 text-gray-800">Lọc bất động sản</h3>
+                        {/* Lọc theo vị trí */}
+                        <div className="mb-4">
+                            <label htmlFor="location" className="block text-gray-700 mb-2">
+                                Vị trí
+                            </label>
+                            <input
+                                type="text"
+                                id="location"
+                                placeholder="Nhập vị trí (VD: Hà Nội)"
+                                value={locationFilter}
+                                onChange={(e) => setLocationFilter(e.target.value)}
+                                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                        </div>
+                        {/* Lọc theo giá */}
+                        <div className="mb-4">
+                            <label className="block text-gray-700 mb-2">Khoảng giá (tỷ VND)</label>
+                            <div className="flex space-x-2">
+                                <input
+                                    type="number"
+                                    placeholder="Từ"
+                                    value={minPrice}
+                                    onChange={(e) => setMinPrice(e.target.value)}
+                                    className="w-1/2 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                <input
+                                    type="number"
+                                    placeholder="Đến"
+                                    value={maxPrice}
+                                    onChange={(e) => setMaxPrice(e.target.value)}
+                                    className="w-1/2 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
                             </div>
+                        </div>
+                        {/* Lọc theo diện tích */}
+                        <div className="mb-4">
+                            <label className="block text-gray-700 mb-2">Diện tích (m²)</label>
+                            <div className="flex space-x-2">
+                                <input
+                                    type="number"
+                                    placeholder="Từ"
+                                    value={minSize}
+                                    onChange={(e) => setMinSize(e.target.value)}
+                                    className="w-1/2 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                <input
+                                    type="number"
+                                    placeholder="Đến"
+                                    value={maxSize}
+                                    onChange={(e) => setMaxSize(e.target.value)}
+                                    className="w-1/2 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                        </div>
+                        {/* Lọc theo loại bất động sản */}
+                        <div className="mb-4">
+                            <label htmlFor="type" className="block text-gray-700 mb-2">
+                                Loại bất động sản
+                            </label>
+                            <select
+                                id="type"
+                                value={typeFilter}
+                                onChange={(e) => setTypeFilter(e.target.value)}
+                                className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="">Tất cả</option>
+                                <option value="HOUSE">Nhà</option>
+                                <option value="APARTMENT">Căn hộ</option>
+                                <option value="VILLA">Biệt thự</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Danh sách bất động sản */}
+                    <div className="w-3/4">
+                        <h2 className="text-3xl font-bold mb-8 text-center text-gray-800">
+                            Danh sách bất động sản
+                        </h2>
+                        {filteredProperties.length === 0 ? (
+                            <p className="text-center text-gray-600">Không có bài viết nào.</p>
                         ) : (
-                            <>
-                                <a href="/login" className="text-gray-600 hover:text-blue-500">Login</a>
-                                <a href="/register" className="text-gray-600 hover:text-blue-500">Register</a>
-                            </>
+                            filteredProperties.map((property) => (
+                                <div key={property.propertyID} className="mb-8">
+                                    <PropertyPost property={property}/>
+                                </div>
+                            ))
                         )}
                     </div>
-                </nav>
-            </header>
-
-            {/* BLog section */}
-            <section className="py-6">
-                <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h2 className="text-3xl font-bold mb-8 text-center text-gray-800">
-                        Danh sách bất động sản
-                    </h2>
-                    {properties.length === 0 ? (
-                        <p className="text-center text-gray-600">Không có bài viết nào.</p>
-                    ) : (
-                        properties.map((property) => (
-                            <div
-                                key={property.propertyID}
-                                className="bg-white rounded-lg shadow-md mb-6 p-4"
-                            >
-                                {/* Header của bài viết */}
-                                <div className="flex items-center mb-4">
-                                    <img
-                                        src="https://picsum.photos/40/40?random=1"
-                                        alt="User avatar"
-                                        className="w-10 h-10 rounded-full mr-3"
-                                    />
-                                    <div>
-                                        <h3 className="text-lg font-semibold text-gray-800">
-                                            Real Estate Agency
-                                        </h3>
-                                        <p className="text-sm text-gray-500">
-                                            Đăng vào {new Date().toLocaleDateString()}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Nội dung bài viết */}
-                                <h4 className="text-xl font-bold text-gray-800 mb-2">
-                                    {property.name}
-                                </h4>
-                                <p className="text-gray-600 mb-4">{property.description}</p>
-                                <img
-                                    src={property.imageURL}
-                                    alt={property.name}
-                                    className="w-full h-64 object-cover rounded-lg mb-4"
-                                />
-                                <div className="text-gray-600 mb-4">
-                                    <p><strong>Vị trí:</strong> {property.location}</p>
-                                    <p><strong>Giá:</strong> {property.price}</p>
-                                    <p><strong>Diện tích:</strong> {property.size}</p>
-                                </div>
-
-                                {/* Tương tác */}
-                                <div className="flex space-x-4 text-gray-500">
-                                    <button className="hover:text-blue-500">Thích</button>
-                                    <button className="hover:text-blue-500">Bình luận</button>
-                                    <button className="hover:text-blue-500">Chia sẻ</button>
-                                </div>
-                            </div>
-                        ))
-                    )}
                 </div>
             </section>
 
-            {/* Footer */}
-            <footer className="p-6 bg-gray-800 text-white min-h-48 flex items-center">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <p>© 2025 Real Estate. All rights reserved.</p>
-                    <p className="mt-2">Email: duonghoanghuydhi2@gmail.com | Phone: 0364-635-032</p>
-                </div>
-            </footer>
+            <Footer />
         </div>
-    )
+    );
 }

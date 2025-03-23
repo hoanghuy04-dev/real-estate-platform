@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 
 @Service
 public class UserService {
@@ -36,8 +38,33 @@ public class UserService {
         newUser.setEmail(email);
         userRepository.save(newUser);
 
-
-
         return newUser;
+    }
+
+    public void initUserData() {
+        if (userRepository.count() == 0) {
+            UserEntity admin = new UserEntity();
+            admin.setUsername("admin");
+            admin.setPassword(encoder.encode("123")); // Nên mã hóa mật khẩu trước khi lưu vào DB
+            admin.setEmail("admin@example.com");
+            admin.setName("Admin Real Estate");
+            admin.setPhone("0123456789");
+
+            UserEntity user1 = new UserEntity();
+            user1.setUsername("user1");
+            user1.setPassword(encoder.encode("123"));
+            user1.setEmail("user1@example.com");
+            user1.setName("Hoàng");
+            user1.setPhone("0987654321");
+
+            UserEntity user2 = new UserEntity();
+            user2.setUsername("user2");
+            user2.setPassword(encoder.encode("123"));
+            user2.setEmail("user2@example.com");
+            user2.setName("Huy");
+            user2.setPhone("0364635032");
+
+            userRepository.saveAll(List.of(admin, user1, user2));
+        }
     }
 }

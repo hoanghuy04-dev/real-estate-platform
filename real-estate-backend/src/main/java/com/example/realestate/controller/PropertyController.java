@@ -16,7 +16,7 @@ public class PropertyController {
 
     @PostConstruct
     public void init() {
-        propertyService.initSampleData();
+        propertyService.initPropertiesData();
     }
 
     @GetMapping("/properties")

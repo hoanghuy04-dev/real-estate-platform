@@ -1,37 +1,26 @@
-import React, {useEffect, useState, useContext, useRef} from 'react';
-import {Carousel} from 'react-responsive-carousel';
+import React, { useEffect, useState, useContext, useRef } from 'react';
+import { Carousel } from 'react-responsive-carousel';
 import 'react-responsive-carousel/lib/styles/carousel.min.css';
 import axios from 'axios';
-import {UserIcon} from '@heroicons/react/24/solid';
-import {AuthContext} from '../components/AuthContext';
+
+import { AuthContext } from '../context/AuthContext';
+import Header from '../components/Header';
+import Footer from "../components/Footer";
+import { useNavigate } from 'react-router-dom';
 
 export default function Home() {
     const [properties, setProperties] = useState([]);
     const [searchLocation, setSearchLocation] = useState('');
-    const {user, logout} = useContext(AuthContext);
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const dropdownRef = useRef(null); // Ref để theo dõi dropdown
+    const navigate = useNavigate()
 
     useEffect(() => {
         fetchProperties();
-
-        // Thêm sự kiện click để đóng dropdown khi click ra ngoài
-        const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setIsDropdownOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        // return () => {
-        //     document.removeEventListener('mousedown', handleClickOutside);
-        // };
     }, []);
 
     const fetchProperties = async (searchLocation = '') => {
         try {
             const response = await axios.get('http://localhost:8081/api/properties/search', {
-                params: {location: searchLocation}
+                params: { location: searchLocation }
             });
             if (Array.isArray(response.data)) {
                 setProperties(response.data);
@@ -47,71 +36,19 @@ export default function Home() {
 
     const handleSubmitSearchLocation = (e) => {
         e.preventDefault();
-        fetchProperties(searchLocation);
+        // fetchProperties(searchLocation);
+        if (searchLocation.trim())
+            navigate(`/blog?filterLocation=${encodeURIComponent(searchLocation)}`)
+        else 
+            navigate('/blog')
     };
 
-    const toggleDropdown = () => {
-        setIsDropdownOpen(!isDropdownOpen);
-    };
 
-    const handleLogout = () => {
-        logout();
-        setIsDropdownOpen(false);
-    };
 
     return (
         <div className="min-h-screen bg-gray-100">
             {/* Header */}
-            <header className="bg-white shadow">
-                <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-                    <h1 className="text-2xl font-bold text-blue-600">Real Estate</h1>
-                    <div className="flex items-center space-x-4">
-                        <a href="/" className="text-gray-600 hover:text-blue-500 ">Trang chủ</a>
-                        <a href="/api/properties" className="text-gray-600 hover:text-blue-500">Bài viết</a>
-                        <a href="/api/contact" className="text-gray-600 hover:text-blue-500">Liên hệ</a>
-                        <a href="/api/about" className="text-gray-600 hover:text-blue-500">Giới thiệu</a>
-                        {user ? (
-                            <div className="relative" ref={dropdownRef}>
-                                <button
-                                    onClick={toggleDropdown}
-                                    className="focus:outline-none"
-                                >
-                                    <UserIcon className="h-6 w-6 text-gray-600 hover:text-blue-500"/>
-                                </button>
-                                {isDropdownOpen && (
-                                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-20">
-                                        <a
-                                            href="/profile"
-                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-500"
-                                            // onClick={() => setIsDropdownOpen(false)}
-                                        >
-                                            Thông tin tài khoản
-                                        </a>
-                                        <a
-                                            href="/settings"
-                                            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-500"
-                                            // onClick={() => setIsDropdownOpen(false)}
-                                        >
-                                            Cài đặt
-                                        </a>
-                                        <button
-                                            onClick={handleLogout}
-                                            className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-500"
-                                        >
-                                            Đăng xuất
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        ) : (
-                            <>
-                                <a href="/login" className="text-gray-600 hover:text-blue-500">Login</a>
-                                <a href="/register" className="text-gray-600 hover:text-blue-500">Register</a>
-                            </>
-                        )}
-                    </div>
-                </nav>
-            </header>
+            <Header />
 
             {/* Hero section */}
             <section className="relative h-[400px] text-white">
@@ -205,12 +142,8 @@ export default function Home() {
             </section>
 
             {/* Footer */}
-            <footer className="p-6 bg-gray-800 text-white min-h-48 flex items-center">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <p>© 2025 Real Estate. All rights reserved.</p>
-                    <p className="mt-2">Email: duonghoanghuydhi2@gmail.com | Phone: 0364-635-032</p>
-                </div>
-            </footer>
+
+            <Footer />
         </div>
     );
 }

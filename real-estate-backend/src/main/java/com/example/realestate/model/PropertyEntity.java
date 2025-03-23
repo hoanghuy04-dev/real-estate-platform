@@ -1,9 +1,11 @@
 package com.example.realestate.model;
 
+import com.example.realestate.model.enums.PropertyTypeEnum;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Table(name = "properties")
@@ -26,4 +28,13 @@ public class PropertyEntity {
     private String imageURL;
     @Column(name = "description", columnDefinition = "nvarchar(1000)")
     private String description;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "nvarchar(50)")
+    private PropertyTypeEnum type;
+
+    @ToString.Exclude
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private UserEntity author;
 }

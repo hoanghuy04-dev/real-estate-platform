@@ -5,6 +5,7 @@ import com.example.realestate.dto.request.RegisterRequest;
 import com.example.realestate.dto.response.AuthResponse;
 import com.example.realestate.model.UserEntity;
 import com.example.realestate.service.UserService;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     @Autowired
     private UserService userService;
+
+    @PostConstruct
+    public void init() {
+        userService.initUserData();
+    }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest loginRequest) {
